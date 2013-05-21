@@ -7,6 +7,7 @@ class CrmProductUiGrailsPlugin {
     def grailsVersion = "2.0 > *"
     // the other plugins this plugin depends on
     def dependsOn = [:]
+    def loadAfter = ['crmContact']
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
             "grails-app/conf/ApplicationResources.groovy",
