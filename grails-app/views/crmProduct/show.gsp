@@ -21,6 +21,9 @@
                 <li><a href="#prices" data-toggle="tab"><g:message
                         code="crmProduct.tab.prices.label"/><crm:countIndicator
                         count="${crmProduct.prices.size()}"/></a></li>
+                <li><a href="#related" data-toggle="tab"><g:message
+                        code="crmProduct.tab.related.label"/><crm:countIndicator
+                        count="${crmProduct.compositions.size()}"/></a></li>
                 <crm:pluginViews location="tabs" var="view">
                     <crm:pluginTab id="${view.id}" label="${view.label}" count="${view.model?.totalCount}"/>
                 </crm:pluginViews>
@@ -138,6 +141,22 @@
 
                 <div class="tab-pane" id="prices">
                     <g:render template="prices" model="${[result: prices]}"/>
+                    <div class="form-actions">
+                        <crm:button type="link" action="edit" id="${crmProduct?.id}" visual="primary"
+                                    fragment="prices" icon="icon-pencil icon-white"
+                                    label="crmProduct.button.edit.label" permission="crmProduct:edit">
+                        </crm:button>
+                    </div>
+                </div>
+
+                <div class="tab-pane" id="related">
+                    <g:render template="compositions" model="${[result: crmProduct.compositions]}"/>
+                    <div class="form-actions">
+                        <crm:button type="link" action="edit" id="${crmProduct?.id}" visual="primary"
+                                    fragment="related" icon="icon-pencil icon-white"
+                                    label="crmProduct.button.edit.label" permission="crmProduct:edit">
+                        </crm:button>
+                    </div>
                 </div>
 
                 <crm:pluginViews location="tabs" var="view">

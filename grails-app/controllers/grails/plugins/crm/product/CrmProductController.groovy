@@ -22,6 +22,8 @@ import grails.plugins.crm.core.WebUtils
 import grails.plugins.crm.core.TenantUtils
 import grails.plugins.crm.contact.CrmContact
 
+import javax.servlet.http.HttpServletResponse
+
 class CrmProductController {
 
     static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
@@ -137,7 +139,7 @@ class CrmProductController {
         [crmProduct: crmProduct, prices: prices, currency: "SEK"] // TODO SEK!!!
     }
 
-    // TODO !!!!!!
+    // TODO hard coded Swedish VAT values!!!!!!
     private List getVatList() {
         [0, 6, 12, 25].collect {
             [label: "${it}%", value: (it / 100).doubleValue()]
@@ -151,27 +153,36 @@ class CrmProductController {
             redirect(action: "index")
             return
         }
+
         def groups = crmProductService.listProductGroups()
+        def productList = crmProductService.list()
+
         switch (request.method) {
             case "GET":
-                return [crmProduct: crmProduct, productGroups: groups, vatList: getVatList()]
+                return [crmProduct: crmProduct, productGroups: groups, vatList: getVatList(), productList: productList]
             case "POST":
                 if (params.int('version') != null) {
                     if (crmProduct.version > params.int('version')) {
                         crmProduct.errors.rejectValue("version", "crmProduct.optimistic.locking.failure",
                                 [message(code: 'crmProduct.label', default: 'Product')] as Object[],
                                 "Another user has updated this Product while you were editing")
-                        render(view: "edit", model: [crmProduct: crmProduct, productGroups: groups, vatList: getVatList()])
+                        render(view: "edit", model: [crmProduct: crmProduct, productGroups: groups, vatList: getVatList(), productList: productList])
                         return
                     }
                 }
 
                 crmProduct.supplier = getCompany(params.remove('supplier'))
 
-                bindData(crmProduct, params, [include: CrmProduct.BIND_WHITELIST])
-
+                bindData(crmProduct, params, [include: CrmProduct.BIND_WHITELIST + ['compositions']])
+/*
+                if(params.addComposition.product.id) {
+                    def c = new CrmProductComposition()
+                    bindData(c, params, 'addComposition')
+                    crmProduct.addToCompositions(c)
+                }
+*/
                 if (!crmProduct.save(flush: true)) {
-                    render(view: "edit", model: [crmProduct: crmProduct, productGroups: groups, vatList: getVatList()])
+                    render(view: "edit", model: [crmProduct: crmProduct, productGroups: groups, vatList: getVatList(), productList: productList])
                     return
                 }
 
@@ -218,6 +229,52 @@ class CrmProductController {
     def addPrice() {
         def crmProduct = params.id ? CrmProduct.get(params.id) : null
         render template: 'price', model: [row: 0, bean: new CrmProductPrice(product: crmProduct, fromAmount: 1, inPrice: 0, outPrice: 0, vat: 0.25), vatList: getVatList()]
+    }
+
+    def deletePrice(Long id) {
+        def price = CrmProductPrice.get(id)
+        if (price) {
+            def product = price.product
+            if (product.tenantId == TenantUtils.tenant) {
+                try {
+                    price.delete(flush: true)
+                    render 'true'
+                } catch (Exception e) {
+                    log.error("Failed to delete CrmProductPrice($id)", e)
+                    render 'false'
+                }
+            } else {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN)
+            }
+        } else {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND)
+        }
+    }
+
+    def addRelated() {
+        def crmProduct = params.id ? CrmProduct.get(params.id) : null
+        def productList = crmProductService.list()
+        render template: 'related', model: [row: 0, bean: new CrmProductComposition(product: crmProduct, quantity: 1, type: CrmProductComposition.INCLUDES), productList: productList]
+    }
+
+    def deleteRelated(Long id) {
+        def comp = CrmProductComposition.get(id)
+        if (comp) {
+            def product = comp.product
+            if (product.tenantId == TenantUtils.tenant) {
+                try {
+                    comp.delete(flush: true)
+                    render 'true'
+                } catch (Exception e) {
+                    log.error("Failed to delete CrmProductComposition($id)", e)
+                    render 'false'
+                }
+            } else {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN)
+            }
+        } else {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND)
+        }
     }
 
     def autocompleteSupplier() {

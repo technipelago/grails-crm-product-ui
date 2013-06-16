@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<%@ page import="grails.plugins.crm.product.CrmProductComposition" %><!DOCTYPE html>
 <html>
 <head>
     <meta name="layout" content="main">
@@ -6,6 +6,24 @@
     <title><g:message code="crmProduct.edit.title" args="[entityName, crmProduct]"/></title>
     <r:require modules="autocomplete"/>
     <r:script>
+        function deletePrice(source, id) {
+            if(id) {
+                $.post("${createLink(action: 'deletePrice')}", {id: id}, function(data) {
+                    deleteTableRow(source);
+                });
+            } else {
+                deleteTableRow(source);
+            }
+        }
+        function deleteComposition(source, id) {
+            if(id) {
+                $.post("${createLink(action: 'deleteRelated')}", {id: id}, function(data) {
+                    deleteTableRow(source);
+                });
+            } else {
+                deleteTableRow(source);
+            }
+        }
         $(document).ready(function () {
             // Supplier.
             $("input[name='supplier']").autocomplete("${createLink(action: 'autocompleteSupplier')}", {
@@ -22,11 +40,22 @@
             });
 
             $("#btn-add-price").click(function(ev) {
-                $.get("${createLink(action: 'addPrice', id: crmProduct.id)}", function(html) {
+                $.get("${createLink(action: 'addPrice', id: crmProduct.id)}", function(markup) {
                     var table = $("#price-list");
+                    var html = $(markup);
                     $("tbody", table).append(html);
                     table.renumberInputNames();
-                    $("tr:last :input:enabled:first", table).focus();
+                    $(":input:enabled:first", html).focus();
+                });
+            });
+
+            $("#btn-add-related").click(function(ev) {
+                $.get("${createLink(action: 'addRelated', id: crmProduct.id)}", function(markup) {
+                    var table = $("#related-list");
+                    var html = $(markup);
+                    $("tbody", table).append(html);
+                    table.renumberInputNames();
+                    $(":input:enabled:first", html).focus();
                 });
             });
         });
@@ -53,6 +82,8 @@
 
     <g:hiddenField name="id" value="${crmProduct.id}"/>
     <g:hiddenField name="version" value="${crmProduct.version}"/>
+    <g:hiddenField name="delete.prices" value=""/>
+    <g:hiddenField name="delete.compositions" value=""/>
 
     <div class="tabbable">
         <ul class="nav nav-tabs">
@@ -60,6 +91,9 @@
             </li>
             <li><a href="#prices" data-toggle="tab"><g:message code="crmProduct.tab.prices.label"/><crm:countIndicator
                     count="${crmProduct.prices.size()}"/></a></li>
+            <li><a href="#related" data-toggle="tab"><g:message
+                    code="crmProduct.tab.related.label"/><crm:countIndicator
+                    count="${crmProduct.compositions.size()}"/></a></li>
             <crm:pluginViews location="tabs" var="view">
                 <crm:pluginTab id="${view.id}" label="${view.label}" count="${view.model?.totalCount}"/>
             </crm:pluginViews>
@@ -119,6 +153,17 @@
                     </div>
 
                 </f:with>
+
+
+                <div class="form-actions">
+                    <crm:button visual="primary" icon="icon-ok icon-white" label="crmProduct.button.update.label"/>
+                    <crm:button action="delete" visual="danger" icon="icon-trash icon-white"
+                                label="crmProduct.button.delete.label"
+                                confirm="crmProduct.button.delete.confirm.message" permission="crmProduct:delete"/>
+                    <crm:button type="link" action="show" id="${crmProduct.id}"
+                                icon="icon-remove"
+                                label="crmProduct.button.cancel.label"/>
+                </div>
             </div>
 
             <div class="tab-pane" id="prices">
@@ -153,22 +198,42 @@
 
             </div>
 
+            <div class="tab-pane" id="related">
+                <table id="related-list" class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th><g:message code="crmProductComposition.type.label"/></th>
+                        <th><g:message code="crmProductComposition.quantity.label"/></th>
+                        <th><g:message code="crmProductComposition.product.label"/></th>
+                        <th></th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <g:each in="${crmProduct.compositions}" var="c" status="i">
+                        <g:render template="related" model="${[bean: c, row: i, productList: productList]}"/>
+                    </g:each>
+                    </tbody>
+
+                    <tfoot>
+                    <tr>
+                        <td colspan="4">
+                            <button type="button" class="btn btn-success" id="btn-add-related">
+                                <i class="icon-plus icon-white"></i>
+                                <g:message code="crmProductComposition.button.add.label" default="Add Related Product"/>
+                            </button>
+                        </td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+
             <crm:pluginViews location="tabs" var="view">
                 <div class="tab-pane tab-${view.id}" id="${view.id}">
                     <g:render template="${view.template}" model="${view.model}" plugin="${view.plugin}"/>
                 </div>
             </crm:pluginViews>
         </div>
-    </div>
-
-    <div class="form-actions">
-        <crm:button visual="primary" icon="icon-ok icon-white" label="crmProduct.button.update.label"/>
-        <crm:button action="delete" visual="danger" icon="icon-trash icon-white"
-                    label="crmProduct.button.delete.label"
-                    confirm="crmProduct.button.delete.confirm.message" permission="crmProduct:delete"/>
-        <crm:button type="link" action="show" id="${crmProduct.id}"
-                    icon="icon-remove"
-                    label="crmProduct.button.cancel.label"/>
     </div>
 
 </g:form>
