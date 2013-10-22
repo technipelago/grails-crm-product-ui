@@ -1,4 +1,4 @@
-# Grails CRM - Product UI Plugin
+# Grails CRM - Product Management User Interface
 
 CRM = [Customer Relationship Management](http://en.wikipedia.org/wiki/Customer_relationship_management)
 
@@ -11,5 +11,6 @@ With CRM we mean features like:
 - Project Management
 
 
-## Product UI Plugin
-This plugin provides product administration user interface.
+## Product Management User Interface
+This plugin is part of the Grails CRM eco-system and provides a product management user interface based on Twitter Bootstrap.
+It depends on the [crm-product](https://github.com/goeh/grails-crm-product) plugin for services and persistence.

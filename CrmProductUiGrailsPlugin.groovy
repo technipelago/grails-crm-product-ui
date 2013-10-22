@@ -18,8 +18,8 @@ Provides (admin) user interface for product/item management in Grails CRM
     def documentation = "http://grails.org/plugin/crm-product-ui"
     def license = "APACHE"
     def organization = [name: "Technipelago AB", url: "http://www.technipelago.se/"]
-    def issueManagement = [system: "github", url: "https://github.com/goeh/grails-crm-product-ui/issues"]
-    def scm = [url: "https://github.com/goeh/grails-crm-product-ui"]
+    def issueManagement = [system: "github", url: "https://github.com/technipelago/grails-crm-product-ui/issues"]
+    def scm = [url: "https://github.com/technipelago/grails-crm-product-ui"]
 
     def features = {
         crmProduct {
