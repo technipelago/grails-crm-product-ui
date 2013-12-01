@@ -121,7 +121,7 @@ class CrmProductController {
     }
 
     def show(Long id) {
-        def crmProduct = CrmProduct.get(id)
+        def crmProduct = CrmProduct.findByIdAndTenantId(id, TenantUtils.tenant)
         if (!crmProduct) {
             flash.error = message(code: 'crmProduct.not.found.message', args: [message(code: 'crmProduct.label', default: 'Product'), id])
             redirect(action: "index")
@@ -147,7 +147,7 @@ class CrmProductController {
     }
 
     def edit(Long id) {
-        def crmProduct = CrmProduct.get(id)
+        def crmProduct = CrmProduct.findByIdAndTenantId(id, TenantUtils.tenant)
         if (!crmProduct) {
             flash.error = message(code: 'crmProduct.not.found.message', args: [message(code: 'crmProduct.label', default: 'Product'), id])
             redirect(action: "index")
@@ -207,10 +207,10 @@ class CrmProductController {
     }
 
     def delete(Long id) {
-        def crmProduct = CrmProduct.get(id)
+        def crmProduct = CrmProduct.findByIdAndTenantId(id, TenantUtils.tenant)
         if (!crmProduct) {
             flash.error = message(code: 'crmProduct.not.found.message', args: [message(code: 'crmProduct.label', default: 'Product'), id])
-            redirect(action: "list")
+            redirect(action: "index")
             return
         }
 
@@ -218,7 +218,7 @@ class CrmProductController {
             def tombstone = crmProduct.toString()
             crmProduct.delete(flush: true)
             flash.warning = message(code: 'crmProduct.deleted.message', args: [message(code: 'crmProduct.label', default: 'Product'), tombstone])
-            redirect(action: "list")
+            redirect(action: "index")
         }
         catch (DataIntegrityViolationException e) {
             flash.error = message(code: 'crmProduct.not.deleted.message', args: [message(code: 'crmProduct.label', default: 'Product'), id])
@@ -226,8 +226,8 @@ class CrmProductController {
         }
     }
 
-    def addPrice() {
-        def crmProduct = params.id ? CrmProduct.get(params.id) : null
+    def addPrice(Long id) {
+        def crmProduct = id ? CrmProduct.findByIdAndTenantId(id, TenantUtils.tenant) : null
         render template: 'price', model: [row: 0, bean: new CrmProductPrice(product: crmProduct, fromAmount: 1, inPrice: 0, outPrice: 0, vat: 0.25), vatList: getVatList()]
     }
 
@@ -251,8 +251,8 @@ class CrmProductController {
         }
     }
 
-    def addRelated() {
-        def crmProduct = params.id ? CrmProduct.get(params.id) : null
+    def addRelated(Long id) {
+        def crmProduct = id ? CrmProduct.findByIdAndTenantId(id, TenantUtils.tenant) : null
         def productList = crmProductService.list()
         render template: 'related', model: [row: 0, bean: new CrmProductComposition(product: crmProduct, quantity: 1, type: CrmProductComposition.INCLUDES), productList: productList]
     }
