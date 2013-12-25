@@ -37,7 +37,7 @@
             </f:with>
 
             <div class="form-actions">
-                <crm:button visual="primary" icon="icon-ok icon-white" label="crmPriceList.button.update.label"/>
+                <crm:button visual="warning" icon="icon-ok icon-white" label="crmPriceList.button.update.label"/>
                 <crm:button action="delete" visual="danger" icon="icon-trash icon-white"
                             label="crmPriceList.button.delete.label"
                             confirm="crmPriceList.button.delete.confirm.message"

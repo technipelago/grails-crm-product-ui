@@ -156,7 +156,7 @@
 
 
                 <div class="form-actions">
-                    <crm:button visual="primary" icon="icon-ok icon-white" label="crmProduct.button.update.label"/>
+                    <crm:button visual="warning" icon="icon-ok icon-white" label="crmProduct.button.update.label"/>
                     <crm:button action="delete" visual="danger" icon="icon-trash icon-white"
                                 label="crmProduct.button.delete.label"
                                 confirm="crmProduct.button.delete.confirm.message" permission="crmProduct:delete"/>

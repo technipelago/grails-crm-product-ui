@@ -122,7 +122,7 @@
                         <g:form>
                             <g:hiddenField name="id" value="${crmProduct?.id}"/>
 
-                            <crm:button type="link" action="edit" id="${crmProduct?.id}" visual="primary"
+                            <crm:button type="link" action="edit" id="${crmProduct?.id}" visual="warning"
                                         icon="icon-pencil icon-white"
                                         label="crmProduct.button.edit.label" permission="crmProduct:edit">
                             </crm:button>
