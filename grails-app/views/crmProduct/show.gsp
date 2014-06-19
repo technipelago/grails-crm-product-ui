@@ -171,11 +171,7 @@
     </div>
 
     <div class="span3">
-
         <g:render template="/tags" plugin="crm-tags" model="${[bean: crmProduct]}"/>
-
-        <div id="resource-preview"></div>
-
     </div>
 </div>
 
