@@ -14,3 +14,7 @@ With CRM we mean features like:
 ## Product Management User Interface
 This plugin is part of the GR8 CRM eco-system and provides a product management user interface based on Twitter Bootstrap.
 It depends on the [crm-product](https://github.com/goeh/grails-crm-product) plugin for services and persistence.
+
+### Documentation
+
+Complete documentation for this plugin can be found at [gr8crm.github.io](http://gr8crm.github.io/plugins/crm-product-ui/)
