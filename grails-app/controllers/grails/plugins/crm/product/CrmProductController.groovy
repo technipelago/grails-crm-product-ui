@@ -58,17 +58,20 @@ class CrmProductController {
 
         params.max = Math.min(params.max ? params.int('max') : 10, 100)
 
+        def currency = grailsApplication.config.crm.currency.default ?: 'EUR'
+
         def result
         try {
             result = selectionService.select(uri, params)
-            if (result.size() == 1) {
-                redirect action: "show", id: result.head().ident()
+            if (result.totalCount == 1 && params.view != 'list') {
+                // If we only got one record, show the record immediately.
+                redirect action: "show", params: selectionService.createSelectionParameters(uri) + [id: result.head().ident()]
             } else {
-                [crmProductList: result, crmProductTotal: result.totalCount, selection: uri, currency: "SEK"]
+                [crmProductList: result, crmProductTotal: result.totalCount, selection: uri, currency: currency]
             }
         } catch (Exception e) {
             flash.error = e.message
-            [crmProductList: [], crmProductTotal: 0, selection: uri, currency: "SEK"] // TODO SEK!!!
+            [crmProductList: [], crmProductTotal: 0, selection: uri, currency: currency]
         }
     }
 
@@ -136,14 +139,18 @@ class CrmProductController {
             order 'unit'
             order 'fromAmount'
         }
-        [crmProduct: crmProduct, prices: prices, currency: "SEK"] // TODO SEK!!!
+        def currency = grailsApplication.config.crm.currency.default ?: 'EUR'
+        [crmProduct: crmProduct, prices: prices, currency: currency]
     }
 
-    // TODO hard coded Swedish VAT values!!!!!!
-    private List getVatList() {
-        [0, 6, 12, 25].collect {
+    private List getVatOptions() {
+        getVatList().collect {
             [label: "${it}%", value: (it / 100).doubleValue()]
         }
+    }
+
+    private List<Number> getVatList() {
+        grailsApplication.config.crm.currency.vat.list ?: []
     }
 
     def edit(Long id) {
@@ -159,14 +166,14 @@ class CrmProductController {
 
         switch (request.method) {
             case "GET":
-                return [crmProduct: crmProduct, productGroups: groups, vatList: getVatList(), productList: productList]
+                return [crmProduct: crmProduct, productGroups: groups, vatList: getVatOptions(), productList: productList]
             case "POST":
                 if (params.int('version') != null) {
                     if (crmProduct.version > params.int('version')) {
                         crmProduct.errors.rejectValue("version", "crmProduct.optimistic.locking.failure",
                                 [message(code: 'crmProduct.label', default: 'Product')] as Object[],
                                 "Another user has updated this Product while you were editing")
-                        render(view: "edit", model: [crmProduct: crmProduct, productGroups: groups, vatList: getVatList(), productList: productList])
+                        render(view: "edit", model: [crmProduct: crmProduct, productGroups: groups, vatList: getVatOptions(), productList: productList])
                         return
                     }
                 }
@@ -182,7 +189,7 @@ class CrmProductController {
                 }
 */
                 if (!crmProduct.save(flush: true)) {
-                    render(view: "edit", model: [crmProduct: crmProduct, productGroups: groups, vatList: getVatList(), productList: productList])
+                    render(view: "edit", model: [crmProduct: crmProduct, productGroups: groups, vatList: getVatOptions(), productList: productList])
                     return
                 }
 
@@ -228,7 +235,8 @@ class CrmProductController {
 
     def addPrice(Long id) {
         def crmProduct = id ? CrmProduct.findByIdAndTenantId(id, TenantUtils.tenant) : null
-        render template: 'price', model: [row: 0, bean: new CrmProductPrice(product: crmProduct, fromAmount: 1, inPrice: 0, outPrice: 0, vat: 0.25), vatList: getVatList()]
+        def vat = grailsApplication.config.crm.currency.vat.default ?: 0
+        render template: 'price', model: [row: 0, bean: new CrmProductPrice(product: crmProduct, fromAmount: 1, inPrice: 0, outPrice: 0, vat: vat), vatList: getVatOptions()]
     }
 
     def deletePrice(Long id) {

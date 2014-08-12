@@ -118,23 +118,27 @@
                         </div>
                     </div>
 
-                    <div class="form-actions">
-                        <g:form>
-                            <g:hiddenField name="id" value="${crmProduct?.id}"/>
+                    <div class="form-actions btn-toolbar">
 
-                            <crm:button type="link" action="edit" id="${crmProduct?.id}" visual="warning"
-                                        icon="icon-pencil icon-white"
-                                        label="crmProduct.button.edit.label" permission="crmProduct:edit">
-                            </crm:button>
+                        <crm:selectionMenu location="crmProduct" visual="primary">
+                            <crm:button type="link" controller="crmProduct" action="index"
+                                        visual="primary" icon="icon-search icon-white"
+                                        label="crmProduct.button.find.label"/>
+                        </crm:selectionMenu>
 
-                            <crm:button type="link" action="create"
-                                        params="${['group.id': crmProduct.group?.id]}"
-                                        visual="success"
-                                        icon="icon-file icon-white"
-                                        label="crmProduct.button.create.label"
-                                        title="crmProduct.button.create.help"
-                                        permission="crmProduct:create"/>
-                        </g:form>
+                        <crm:button type="link" action="edit" id="${crmProduct?.id}" visual="warning"
+                                    icon="icon-pencil icon-white"
+                                    label="crmProduct.button.edit.label" permission="crmProduct:edit">
+                        </crm:button>
+
+                        <crm:button type="link" action="create"
+                                    params="${['group.id': crmProduct.group?.id]}"
+                                    visual="success"
+                                    icon="icon-file icon-white"
+                                    label="crmProduct.button.create.label"
+                                    title="crmProduct.button.create.help"
+                                    permission="crmProduct:create"/>
+
                     </div>
 
                 </div>
@@ -142,7 +146,7 @@
                 <div class="tab-pane" id="prices">
                     <g:render template="prices" model="${[result: prices]}"/>
                     <div class="form-actions">
-                        <crm:button type="link" action="edit" id="${crmProduct?.id}" visual="primary"
+                        <crm:button type="link" action="edit" id="${crmProduct?.id}" visual="warning"
                                     fragment="prices" icon="icon-pencil icon-white"
                                     label="crmProduct.button.edit.label" permission="crmProduct:edit">
                         </crm:button>
@@ -152,7 +156,7 @@
                 <div class="tab-pane" id="related">
                     <g:render template="compositions" model="${[result: crmProduct.compositions]}"/>
                     <div class="form-actions">
-                        <crm:button type="link" action="edit" id="${crmProduct?.id}" visual="primary"
+                        <crm:button type="link" action="edit" id="${crmProduct?.id}" visual="warning"
                                     fragment="related" icon="icon-pencil icon-white"
                                     label="crmProduct.button.edit.label" permission="crmProduct:edit">
                         </crm:button>

@@ -70,6 +70,9 @@
                 </crm:selectionMenu>
                 <crm:button type="link" group="true" action="create" visual="success" icon="icon-file icon-white"
                             label="crmProduct.button.create.label" permission="crmProduct:create"/>
+
+                <g:link action="clearQuery" class="btn btn-link"><g:message code="crmProduct.button.query.clear.label"
+                                                                            default="Reset fields"/></g:link>
             </div>
 
         </g:form>
