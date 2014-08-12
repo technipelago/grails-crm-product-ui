@@ -22,44 +22,102 @@
 
             <div class="row-fluid">
 
-                <f:with bean="cmd">
-                    <div class="span4">
-                            <f:field property="number" label="crmProduct.number.label"
-                                     input-class="input-large" input-autofocus=""
-                                     input-placeholder="${message(code: 'crmProductQueryCommand.number.placeholder', default: '')}"/>
-                            <f:field property="name" label="crmProduct.name.label"
-                                     input-class="input-large"
-                                     input-placeholder="${message(code: 'crmProductQueryCommand.name.placeholder', default: '')}"/>
-                            <f:field property="productGroup" label="crmProduct.group.label"
-                                     input-class="input-large"
-                                     input-placeholder="${message(code: 'crmProductQueryCommand.productGroup.placeholder', default: '')}"/>
+                <div class="span4">
+                    <div class="control-group">
+                        <label class="control-label">
+                            <g:message code="crmProduct.number.label"/>
+                        </label>
+
+                        <div class="controls">
+                            <g:textField name="number" value="${cmd.number}" class="span12" autofocus=""/>
+                        </div>
                     </div>
 
-                    <div class="span4">
-                            <f:field property="suppliersNumber" label="crmProduct.suppliersNumber.label"
-                                     input-class="input-large"
-                                     input-placeholder="${message(code: 'crmProductQueryCommand.suppliersNumber.placeholder', default: '')}"/>
-                            <f:field property="supplier" label="crmProduct.supplier.label"
-                                     input-class="input-large"
-                                     input-placeholder="${message(code: 'crmProductQueryCommand.supplier.placeholder', default: '')}"/>
-                            <f:field property="barcode" label="crmProduct.barcode.label"
-                                     input-class="input-large"
-                                     input-placeholder="${message(code: 'crmProductQueryCommand.barcode.placeholder', default: '')}"/>
-                            <f:field property="customsCode" label="crmProduct.customsCode.label"
-                                     input-class="input-large"
-                                     input-placeholder="${message(code: 'crmProductQueryCommand.customsCode.placeholder', default: '')}"/>
+                    <div class="control-group">
+                        <label class="control-label">
+                            <g:message code="crmProduct.name.label"/>
+                        </label>
+
+                        <div class="controls">
+                            <g:textField name="name" value="${cmd.name}" class="span12"/>
+                        </div>
                     </div>
 
-                    <div class="span4">
-                            <f:field property="price" label="crmProduct.price.label"
-                                     input-class="input-small"
-                                     input-placeholder="${message(code: 'crmProductQueryCommand.price.placeholder', default: '')}"/>
-                            <f:field property="weight" label="crmProduct.weight.label"
-                                     input-class="input-small"
-                                     input-placeholder="${message(code: 'crmProductQueryCommand.weight.placeholder', default: '')}"/>
+                    <div class="control-group">
+                        <label class="control-label">
+                            <g:message code="crmProduct.group.label"/>
+                        </label>
+
+                        <div class="controls">
+                            <g:textField name="group" value="${cmd.group}" class="span12"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="span4">
+                    <div class="control-group">
+                        <label class="control-label">
+                            <g:message code="crmProduct.suppliersNumber.label"/>
+                        </label>
+
+                        <div class="controls">
+                            <g:textField name="suppliersNumber" value="${cmd.suppliersNumber}"
+                                         class="span12"/>
+                        </div>
                     </div>
 
-                </f:with>
+                    <div class="control-group">
+                        <label class="control-label">
+                            <g:message code="crmProduct.supplier.label"/>
+                        </label>
+
+                        <div class="controls">
+                            <g:textField name="supplier" value="${cmd.supplier}" class="span12"/>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">
+                            <g:message code="crmProduct.barcode.label"/>
+                        </label>
+
+                        <div class="controls">
+                            <g:textField name="barcode" value="${cmd.barcode}" class="span12"/>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">
+                            <g:message code="crmProduct.customsCode.label"/>
+                        </label>
+
+                        <div class="controls">
+                            <g:textField name="customsCode" value="${cmd.customsCode}" class="span12"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="span4">
+                    <div class="control-group">
+                        <label class="control-label">
+                            <g:message code="crmProduct.price.label"/>
+                        </label>
+
+                        <div class="controls">
+                            <g:textField name="price" value="${cmd.price}" class="span9"/>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">
+                            <g:message code="crmProduct.weight.label"/>
+                        </label>
+
+                        <div class="controls">
+                            <g:textField name="weight" value="${cmd.weight}" class="span9"/>
+                        </div>
+                    </div>
+                </div>
 
             </div>
 
