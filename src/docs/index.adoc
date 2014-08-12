@@ -1,0 +1,81 @@
+= GR8 CRM - Product Management User Interface Plugin
+Göran Ehrsson <goran@technipelago.se>
+:description: Official documentation for the GR8 CRM Product Management User Interface Plugin
+:keywords: groovy, grails, crm, gr8crm, documentation
+:toc:
+:numbered:
+:icons: font
+:imagesdir: ./images
+:source-highlighter: prettify
+:homepage: http://gr8crm.github.io
+:gr8crm: GR8 CRM
+:gr8source: https://github.com/technipelago/grails-crm-product-ui
+:license: This plugin is licensed with http://www.apache.org/licenses/LICENSE-2.0.html[Apache License version 2.0]
+
+== Introduction
+
+{gr8crm} is a set of http://www.grails.org/[Grails Web Application Framework]
+plugins that makes it easy to develop web applications with CRM functionality.
+
+You can find more information about {gr8crm} on the main documentation site {homepage}.
+
+=== Customer Relationship Management
+
+Customer relationship management (CRM) is a system for managing a company’s interactions with current and future customers.
+It involves using technology to organize, automate and synchronize sales, marketing, customer service, and technical support.
+http://en.wikipedia.org/wiki/Customer_relationship_management[Wikipedia]
+
+The {gr8crm} "Ecosystem" currently contains over 40 Grails plugins. For a complete list of plugins see {homepage}.
+
+Each {gr8crm} plugin defines a http://martinfowler.com/bliki/BoundedContext.html[Bounded Context]
+that focus on one specific domain, for example *product*, *project* or *document*.
+
+== Product Management User Interface Plugin
+
+The +crm-product-ui+ plugin is a companion plugin to the +crm-product+ plugin.
+It provides a Twitter Bootstrap based user interface for managing products.
+
+=== Search products
+
+To query for products you visit +crmProduct/index+ which will show the query form.
+
+image::crm-product-find.png[The query form, role="thumb"]
+
+You can enter query values in any field and then hit the +Search+ button to search for products matching your query.
+If you don't enter any query value all products will be included in the search result.
+
+If the query result contains more than one product, a product list will be displayed. If the query result contains
+exactly one product, then details for that product will be displayed.
+I.e. it will skip the +list+ view and go directly to the +show+ view.
+
+image::crm-product-list.png[The product list, role="thumb"]
+
+You can click on any product to show details for that product.
+
+=== Product details
+
+The product details page +crmProduct/show+ shows all the details for a selected product.
+Here you will find product name, description and price.
+
+image::crm-product-show.png[Product details, role="thumb"]
+
+If the +crm-tags+ plugin is installed you can see existing tags and add new tags to a product.
+
+=== Edit product details
+
+To edit product details you hit the +Edit+ button. This will display the edit page +crmProduct/edit+.
+Here you can alter values and then hit +Save+ to store the new values in the database.
+
+image::crm-product-edit.png[Edit product details, role="thumb"]
+
+== Changes
+
+2.0.0:: First public release
+
+== License
+
+{license}
+
+== Source Code
+
+The source code for this plugin is available at {gr8source}
