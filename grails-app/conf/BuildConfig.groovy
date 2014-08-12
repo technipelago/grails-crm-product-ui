@@ -31,6 +31,7 @@ grails.project.dependency.resolution = {
 
         //compile ":crm-product:2.0.0"
 
+        compile ":user-tag:0.6"
         compile ":selection:0.9.7"
     }
 }

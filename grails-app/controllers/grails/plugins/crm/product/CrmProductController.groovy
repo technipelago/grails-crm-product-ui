@@ -23,6 +23,7 @@ import grails.plugins.crm.core.TenantUtils
 import grails.plugins.crm.contact.CrmContact
 
 import javax.servlet.http.HttpServletResponse
+import java.util.concurrent.TimeoutException
 
 class CrmProductController {
 
@@ -32,6 +33,7 @@ class CrmProductController {
     def selectionService
     def crmProductService
     def crmContactService
+    def userTagService
 
     def index() {
         // If any query parameters are specified in the URL, let them override the last query stored in session.
@@ -80,25 +82,39 @@ class CrmProductController {
         redirect(action: 'index')
     }
 
-    def print() {
-        def user = crmSecurityService.currentUser
-        def tempFile = event(for: "crmProduct", topic: "print", data: params + [report: 'list', user: user, tenant: TenantUtils.tenant]).waitFor(20000)?.value
-        if (tempFile instanceof File) {
+    def export() {
+        def user = crmSecurityService.getUserInfo()
+        def namespace = params.namespace ?: 'crmProduct'
+        if (request.post) {
+            def filename = message(code: 'crmProduct.label', default: 'Product')
             try {
-                def filename = message(code: 'crmProduct.label', default: 'Product') + '.pdf'
-                WebUtils.inlineHeaders(response, "application/pdf", filename)
-                WebUtils.renderFile(response, tempFile)
-            } finally {
-                tempFile.delete()
+                def topic = params.topic ?: 'export'
+                def result = event(for: namespace, topic: topic,
+                        data: params + [user: user, tenant: TenantUtils.tenant, locale: request.locale, filename: filename]).waitFor(60000)?.value
+                if (result?.file) {
+                    try {
+                        WebUtils.inlineHeaders(response, result.contentType, result.filename ?: namespace)
+                        WebUtils.renderFile(response, result.file)
+                    } finally {
+                        result.file.delete()
+                    }
+                    return null // Success
+                } else {
+                    flash.warning = message(code: 'crmProduct.export.nothing.message', default: 'Nothing was exported')
+                }
+            } catch (TimeoutException te) {
+                flash.error = message(code: 'crmProduct.export.timeout.message', default: 'Export did not complete')
+            } catch (Exception e) {
+                log.error("Export event throwed an exception", e)
+                flash.error = message(code: 'crmProduct.export.error.message', default: 'Export failed due to an error', args: [e.message])
             }
-            return null // Success
-        } else if (tempFile) {
-            log.error("Print event returned an unexpected value: $tempFile (${tempFile.class.name})")
-            flash.error = message(code: 'crmProduct.print.error.message', default: 'Printing failed due to an error', args: [tempFile.class.name])
+            redirect(action: "index")
         } else {
-            flash.warning = message(code: 'crmProduct.print.nothing.message', default: 'Nothing was printed')
+            def uri = params.getSelectionURI()
+            def layouts = event(for: namespace, topic: (params.topic ?: 'exportLayout'),
+                    data: [tenant: TenantUtils.tenant, username: user.username, uri: uri, locale: request.locale]).waitFor(10000)?.values?.flatten()
+            [layouts: layouts, selection: uri]
         }
-        redirect(action: "index") // error condition, return to search form.
     }
 
     def create() {
@@ -140,7 +156,7 @@ class CrmProductController {
             order 'fromAmount'
         }
         def currency = grailsApplication.config.crm.currency.default ?: 'EUR'
-        [crmProduct: crmProduct, prices: prices, currency: currency]
+        [crmProduct: crmProduct, prices: prices, currency: currency, selection: params.getSelectionURI()]
     }
 
     private List getVatOptions() {
@@ -283,6 +299,29 @@ class CrmProductController {
         } else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND)
         }
+    }
+
+    def createFavorite() {
+        def crmProduct = CrmProduct.findByIdAndTenantId(params.id, TenantUtils.tenant)
+        if (!crmProduct) {
+            flash.error = message(code: 'crmProduct.not.found.message', args: [message(code: 'crmProduct.label', default: 'Product'), params.id])
+            redirect action: 'index'
+            return
+        }
+        userTagService.tag(crmProduct, grailsApplication.config.crm.tag.favorite, crmSecurityService.currentUser?.username, TenantUtils.tenant)
+
+        redirect(action: 'show', id: params.id)
+    }
+
+    def deleteFavorite() {
+        def crmProduct = CrmProduct.findByIdAndTenantId(params.id, TenantUtils.tenant)
+        if (!crmProduct) {
+            flash.error = message(code: 'crmProduct.not.found.message', args: [message(code: 'crmProduct.label', default: 'Product'), params.id])
+            redirect action: 'index'
+            return
+        }
+        userTagService.untag(crmProduct, grailsApplication.config.crm.tag.favorite, crmSecurityService.currentUser?.username, TenantUtils.tenant)
+        redirect(action: 'show', id: params.id)
     }
 
     def autocompleteSupplier() {
