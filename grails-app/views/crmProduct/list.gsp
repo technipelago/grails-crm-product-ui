@@ -79,6 +79,14 @@
 
 <div class="form-actions btn-toolbar">
     <crm:selectionMenu visual="primary"/>
+
+    <g:if test="${crmProductTotal}">
+        <select:link action="export" accesskey="p" selection="${selection}" class="btn btn-info">
+            <i class="icon-print icon-white"></i>
+            <g:message code="crmProduct.button.export.label" default="Print/Export"/>
+        </select:link>
+    </g:if>
+
     <div class="btn-group">
         <crm:button type="link" action="create" visual="success" icon="icon-file icon-white"
                     label="crmProduct.button.create.label" permission="crmProduct:create"/>
