@@ -39,7 +39,7 @@ It provides a Twitter Bootstrap based user interface for managing products.
 
 To query for products you visit +crmProduct/index+ which will show the query form.
 
-image::crm-product-find.png[The query form, role="thumb"]
+image::product-find.png[The query form]
 
 You can enter query values in any field and then hit the +Search+ button to search for products matching your query.
 If you don't enter any query value all products will be included in the search result.
@@ -48,7 +48,7 @@ If the query result contains more than one product, a product list will be displ
 exactly one product, then details for that product will be displayed.
 I.e. it will skip the +list+ view and go directly to the +show+ view.
 
-image::crm-product-list.png[The product list, role="thumb"]
+image::product-list.png[The product list]
 
 You can click on any product to show details for that product.
 
@@ -57,7 +57,7 @@ You can click on any product to show details for that product.
 The product details page +crmProduct/show+ shows all the details for a selected product.
 Here you will find product name, description and price.
 
-image::crm-product-show.png[Product details, role="thumb"]
+image::product-show.png[Product details]
 
 If the +crm-tags+ plugin is installed you can see existing tags and add new tags to a product.
 
@@ -66,7 +66,33 @@ If the +crm-tags+ plugin is installed you can see existing tags and add new tags
 To edit product details you hit the +Edit+ button. This will display the edit page +crmProduct/edit+.
 Here you can alter values and then hit +Save+ to store the new values in the database.
 
-image::crm-product-edit.png[Edit product details, role="thumb"]
+image::product-edit.png[Edit product details]
+
+=== Product price(s)
+
+To edit product prices you hit the +Edit+ button, then you switch to the *Prices* tab.
+You can add staggered prices by specifying different *from amount* for each price level.
+
+image::product-price.png[Edit product prices]
+
+=== Related products
+
+You can add related products on the *Related* tab.
+A related product can be one of the following types:
+
+[options="header",cols="20,80"]
+|===
+| Relation | Description
+| Depends  | This product depends on the other product / This product will not function without the other product
+| Equal    | This product is equivalent to the other product
+| Excludes | This product is incompatible with the other product, they cannot function together
+| Includes | This product includes the other product (this product is some kind of packaged product)
+| Option   | The other product is optional but work well together with this product
+| Related  | The other product is related to this product in some other way
+| Replaces | This product is not available anymore, the other product replaces this product
+|===
+
+image::product-related.png[Related products]
 
 == Changes
 
