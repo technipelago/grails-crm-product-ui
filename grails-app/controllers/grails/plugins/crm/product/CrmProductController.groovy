@@ -16,6 +16,7 @@
 
 package grails.plugins.crm.product
 
+import grails.plugins.crm.core.SearchUtils
 import org.springframework.dao.DataIntegrityViolationException
 import grails.converters.JSON
 import grails.plugins.crm.core.WebUtils
@@ -322,6 +323,23 @@ class CrmProductController {
         }
         userTagService.untag(crmProduct, grailsApplication.config.crm.tag.favorite, crmSecurityService.currentUser?.username, TenantUtils.tenant)
         redirect(action: 'show', id: params.id)
+    }
+
+    def autocompleteGroup() {
+        def result = CrmProductGroup.withCriteria(params) {
+            projections {
+                property('name')
+            }
+            eq('tenantId', TenantUtils.tenant)
+            if (params.q) {
+                or {
+                    ilike('name', SearchUtils.wildcard(params.q))
+                    ilike('param', SearchUtils.wildcard(params.q))
+                }
+            }
+        }
+        WebUtils.shortCache(response)
+        render result as JSON
     }
 
     def autocompleteSupplier() {
