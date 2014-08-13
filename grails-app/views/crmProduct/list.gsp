@@ -15,10 +15,10 @@
 
 <body>
 
-<crm:header title="crmProduct.list.title" subtitle="Sökningen resulterade i ${crmProductTotal} st produkter"
-            args="[entityName]">
-</crm:header>
 
+<crm:header title="crmProduct.list.title" subtitle="crmProduct.totalCount.label"
+            args="[entityName, crmProductTotal]">
+</crm:header>
 
 <table class="table table-striped">
     <thead>
