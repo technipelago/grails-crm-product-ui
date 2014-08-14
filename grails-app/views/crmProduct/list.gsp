@@ -4,13 +4,6 @@
     <meta name="layout" content="main">
     <g:set var="entityName" value="${message(code: 'crmProduct.label', default: 'Product')}"/>
     <title><g:message code="crmProduct.list.title" args="[entityName]"/></title>
-    <style type="text/css">
-    th.money,
-    td.money {
-        text-align: right;
-        padding-right: 20px;
-    }
-    </style>
 </head>
 
 <body>
