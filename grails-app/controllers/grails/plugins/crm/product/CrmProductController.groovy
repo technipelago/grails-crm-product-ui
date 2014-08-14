@@ -325,6 +325,28 @@ class CrmProductController {
         redirect(action: 'show', id: params.id)
     }
 
+    def autocomplete(String q, int limit, int max, String key) {
+        def result = CrmProduct.createCriteria().list() {
+            projections {
+                property('name')
+                if(key) {
+                    property(key)
+                }
+            }
+            if (q) {
+                def filter = SearchUtils.wildcard(q)
+                or {
+                    ilike('number', filter)
+                    ilike('name', filter)
+                }
+            }
+            eq('tenantId', TenantUtils.tenant)
+            maxResults(limit ?: (max ?: 10))
+        }
+        WebUtils.shortCache(response)
+        render result as JSON
+    }
+
     def autocompleteGroup() {
         def result = CrmProductGroup.withCriteria(params) {
             projections {
