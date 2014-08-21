@@ -14,6 +14,7 @@
                 useCache: false,
                 filter: false,
                 preventDefaultReturn: true,
+                minChars: 1,
                 selectFirst: true,
                 onItemSelect: function(item) {
                     var id = item.data[0];
