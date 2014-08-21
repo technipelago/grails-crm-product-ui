@@ -26,7 +26,7 @@
         }
         $(document).ready(function () {
             // Supplier.
-            $("input[name='supplier']").autocomplete("${createLink(action: 'autocompleteSupplier')}", {
+            $("input[name='supplierName']").autocomplete("${createLink(action: 'autocompleteSupplier')}", {
                 remoteDataType: 'json',
                 useCache: false,
                 filter: false,
@@ -34,10 +34,12 @@
                 selectFirst: true,
                 onItemSelect: function(item) {
                     var id = item.data[0];
+                    $("#supplierId").val(id);
                     $("header h1 small").text(item.value);
                 },
                 onNoMatch: function() {
-                    $("header h1 small").text($("input[name='supplier']").val());
+                    $("#supplierId").val('');
+                    $("header h1 small").text($("input[name='supplierName']").val());
                 }
             });
 
@@ -170,8 +172,9 @@
                                 </label>
 
                                 <div class="controls">
-                                    <g:textField name="supplier" value="${crmProduct.supplier?.name}" class="span12"
+                                    <g:textField name="supplierName" value="${crmProduct.supplierName}" class="span12"
                                                  autocomplete="off"/>
+                                    <g:hiddenField name="supplierId" value="${crmProduct.supplierId}"/>
                                 </div>
                             </div>
 
@@ -191,7 +194,7 @@
                                 </label>
 
                                 <div class="controls">
-                                    <g:select name="group.id" from="${productGroups}" optionKey="id"
+                                    <g:select name="group.id" from="${metadata.groups}" optionKey="id"
                                               value="${crmProduct.group?.id}"/>
                                 </div>
                             </div>
@@ -270,12 +273,13 @@
                     </thead>
                     <tbody>
                     <g:each in="${crmProduct.prices}" var="price" status="row">
-                        <g:render template="price" model="${[bean: price, row: row, vatList: vatList]}"/>
+                        <g:render template="price" model="${[bean: price, row: row, vatList: metadata.vatList]}"/>
                     </g:each>
                     </tbody>
                     <tfoot>
                     <tr>
                         <td colspan="7">
+                            <crm:button visual="warning" icon="icon-ok icon-white" label="crmProduct.button.update.label"/>
                             <button type="button" class="btn btn-success" id="btn-add-price">
                                 <i class="icon-plus icon-white"></i>
                                 <g:message code="crmProductPrice.button.add.label" default="Add Price"/>
@@ -300,13 +304,14 @@
 
                     <tbody>
                     <g:each in="${crmProduct.compositions}" var="c" status="i">
-                        <g:render template="related" model="${[bean: c, row: i, productList: productList]}"/>
+                        <g:render template="related" model="${[bean: c, row: i, productList: metadata.allProducts]}"/>
                     </g:each>
                     </tbody>
 
                     <tfoot>
                     <tr>
                         <td colspan="4">
+                            <crm:button visual="warning" icon="icon-ok icon-white" label="crmProduct.button.update.label"/>
                             <button type="button" class="btn btn-success" id="btn-add-related">
                                 <i class="icon-plus icon-white"></i>
                                 <g:message code="crmProductComposition.button.add.label" default="Add Related Product"/>

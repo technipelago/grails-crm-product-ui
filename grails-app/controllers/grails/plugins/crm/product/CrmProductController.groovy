@@ -16,12 +16,13 @@
 
 package grails.plugins.crm.product
 
+import grails.plugins.crm.core.CrmValidationException
 import grails.plugins.crm.core.SearchUtils
 import org.springframework.dao.DataIntegrityViolationException
 import grails.converters.JSON
 import grails.plugins.crm.core.WebUtils
 import grails.plugins.crm.core.TenantUtils
-import grails.plugins.crm.contact.CrmContact
+import org.springframework.web.servlet.support.RequestContextUtils
 
 import javax.servlet.http.HttpServletResponse
 import java.util.concurrent.TimeoutException
@@ -119,43 +120,42 @@ class CrmProductController {
     }
 
     def create() {
-        def crmProduct = crmProductService.createProduct(params)
-        def groups = crmProductService.listProductGroups()
+        def metadata = [:]
+        metadata.groups = crmProductService.listProductGroups()
+        def crmProduct = new CrmProduct()
+
         switch (request.method) {
             case "GET":
-                return [crmProduct: crmProduct, productGroups: groups]
+                crmProduct = crmProductService.init(crmProduct, params, RequestContextUtils.getLocale(request))
+                return [crmProduct: crmProduct, metadata: metadata]
             case "POST":
-                crmProduct.supplier = getCompany(params.remove('supplier'))
-
-                bindData(crmProduct, params, [include: CrmProduct.BIND_WHITELIST])
-
-                if (crmProduct.hasErrors() || !crmProduct.save()) {
-                    render(view: "create", model: [crmProduct: crmProduct, productGroups: groups])
-                    return
+                try {
+                    crmProduct = crmProductService.save(crmProduct, params)
+                } catch (CrmValidationException e) {
+                    crmProduct = e[0]
                 }
 
-                flash.success = message(code: 'crmProduct.created.message', args: [message(code: 'crmProduct.label', default: 'Product'), crmProduct.toString()])
-                redirect(action: "show", id: crmProduct.id)
+                if (crmProduct.hasErrors()) {
+                    render(view: "create", model: [crmProduct: crmProduct, metadata: metadata])
+                } else {
+                    def currentUser = crmSecurityService.currentUser
+                    event(for: "crmProduct", topic: "created", fork: false, data: [id: crmProduct.id, tenant: crmProduct.tenantId, user: currentUser?.username])
+                    flash.success = message(code: 'crmProduct.created.message', args: [message(code: 'crmProduct.label', default: 'Product'), crmProduct.toString()])
+                    redirect(action: "show", id: crmProduct.id)
+                }
                 break
         }
     }
 
     def show(Long id) {
-        def crmProduct = CrmProduct.findByIdAndTenantId(id, TenantUtils.tenant)
+        def crmProduct = crmProductService.getProduct(id)
         if (!crmProduct) {
             flash.error = message(code: 'crmProduct.not.found.message', args: [message(code: 'crmProduct.label', default: 'Product'), id])
             redirect(action: "index")
             return
         }
-
-        def prices = CrmProductPrice.createCriteria().list() {
-            eq('product', crmProduct)
-            priceList {
-                order 'orderIndex', 'asc'
-            }
-            order 'unit'
-            order 'fromAmount'
-        }
+        // Get all prices sorted by price list and unit/amount.
+        def prices = crmProductService.findProductPrices(crmProduct)
         def currency = grailsApplication.config.crm.currency.default ?: 'EUR'
         [crmProduct: crmProduct, prices: prices, currency: currency, selection: params.getSelectionURI()]
     }
@@ -167,71 +167,55 @@ class CrmProductController {
     }
 
     private List<Number> getVatList() {
-        grailsApplication.config.crm.currency.vat.list ?: []
+        grailsApplication.config.crm.currency.vat.list ?: [0]
     }
 
     def edit(Long id) {
-        def crmProduct = CrmProduct.findByIdAndTenantId(id, TenantUtils.tenant)
+        CrmProduct crmProduct = crmProductService.getProduct(id)
         if (!crmProduct) {
             flash.error = message(code: 'crmProduct.not.found.message', args: [message(code: 'crmProduct.label', default: 'Product'), id])
             redirect(action: "index")
             return
         }
-
-        def groups = crmProductService.listProductGroups()
-        def productList = crmProductService.list()
+        def metadata = [:]
+        metadata.groups = crmProductService.listProductGroups()
+        metadata.vatList = getVatOptions()
+        metadata.allProducts = crmProductService.list()
 
         switch (request.method) {
             case "GET":
-                return [crmProduct: crmProduct, productGroups: groups, vatList: getVatOptions(), productList: productList]
+                return [crmProduct: crmProduct, metadata: metadata]
             case "POST":
                 if (params.int('version') != null) {
                     if (crmProduct.version > params.int('version')) {
                         crmProduct.errors.rejectValue("version", "crmProduct.optimistic.locking.failure",
                                 [message(code: 'crmProduct.label', default: 'Product')] as Object[],
                                 "Another user has updated this Product while you were editing")
-                        render(view: "edit", model: [crmProduct: crmProduct, productGroups: groups, vatList: getVatOptions(), productList: productList])
+                        render(view: "edit", model: [crmProduct: crmProduct, metadata: metadata])
                         return
                     }
                 }
 
-                crmProduct.supplier = getCompany(params.remove('supplier'))
-
-                bindData(crmProduct, params, [include: CrmProduct.BIND_WHITELIST + ['compositions']])
-/*
-                if(params.addComposition.product.id) {
-                    def c = new CrmProductComposition()
-                    bindData(c, params, 'addComposition')
-                    crmProduct.addToCompositions(c)
-                }
-*/
-                if (!crmProduct.save(flush: true)) {
-                    render(view: "edit", model: [crmProduct: crmProduct, productGroups: groups, vatList: getVatOptions(), productList: productList])
-                    return
+                try {
+                    crmProduct = crmProductService.save(crmProduct, params)
+                } catch (CrmValidationException e) {
+                    crmProduct = (CrmProduct)e[0]
                 }
 
-                flash.success = message(code: 'crmProduct.updated.message', args: [message(code: 'crmProduct.label', default: 'Product'), crmProduct.toString()])
-                redirect(action: "show", id: crmProduct.id)
+                if (crmProduct.hasErrors()) {
+                    render(view: "edit", model: [crmProduct: crmProduct, metadata: metadata])
+                } else {
+                    def currentUser = crmSecurityService.currentUser
+                    event(for: "crmProduct", topic: "updated", fork: false, data: [id: crmProduct.id, tenant: crmProduct.tenantId, user: currentUser?.username])
+                    flash.success = message(code: 'crmProduct.updated.message', args: [message(code: 'crmProduct.label', default: 'Product'), crmProduct.toString()])
+                    redirect(action: "show", id: crmProduct.id)
+                }
                 break
         }
     }
 
-    private CrmContact getCompany(String name) {
-        if (!name) {
-            return null
-        }
-        def company = crmContactService.findByName(name)
-
-        // A company name is specified but it's not an existing company, create a new company.
-        if (!company) {
-            company = crmContactService.createCompany(name: name).save(failOnError: true, flush: true)
-        }
-
-        return company
-    }
-
     def delete(Long id) {
-        def crmProduct = CrmProduct.findByIdAndTenantId(id, TenantUtils.tenant)
+        def crmProduct = crmProductService.getProduct(id)
         if (!crmProduct) {
             flash.error = message(code: 'crmProduct.not.found.message', args: [message(code: 'crmProduct.label', default: 'Product'), id])
             redirect(action: "index")
@@ -239,8 +223,7 @@ class CrmProductController {
         }
 
         try {
-            def tombstone = crmProduct.toString()
-            crmProduct.delete(flush: true)
+            def tombstone = crmProductService.deleteProduct(crmProduct)
             flash.warning = message(code: 'crmProduct.deleted.message', args: [message(code: 'crmProduct.label', default: 'Product'), tombstone])
             redirect(action: "index")
         }
@@ -251,7 +234,7 @@ class CrmProductController {
     }
 
     def addPrice(Long id) {
-        def crmProduct = id ? CrmProduct.findByIdAndTenantId(id, TenantUtils.tenant) : null
+        def crmProduct = id ? crmProductService.getProduct(id) : null
         def vat = grailsApplication.config.crm.currency.vat.default ?: 0
         render template: 'price', model: [row: 0, bean: new CrmProductPrice(product: crmProduct, fromAmount: 1, inPrice: 0, outPrice: 0, vat: vat), vatList: getVatOptions()]
     }
@@ -277,7 +260,7 @@ class CrmProductController {
     }
 
     def addRelated(Long id) {
-        def crmProduct = id ? CrmProduct.findByIdAndTenantId(id, TenantUtils.tenant) : null
+        def crmProduct = id ? crmProductService.getProduct(id) : null
         def productList = crmProductService.list()
         render template: 'related', model: [row: 0, bean: new CrmProductComposition(product: crmProduct, quantity: 1, type: CrmProductComposition.INCLUDES), productList: productList]
     }
@@ -302,34 +285,34 @@ class CrmProductController {
         }
     }
 
-    def createFavorite() {
-        def crmProduct = CrmProduct.findByIdAndTenantId(params.id, TenantUtils.tenant)
+    def createFavorite(Long id) {
+        def crmProduct = crmProductService.getProduct(id)
         if (!crmProduct) {
-            flash.error = message(code: 'crmProduct.not.found.message', args: [message(code: 'crmProduct.label', default: 'Product'), params.id])
+            flash.error = message(code: 'crmProduct.not.found.message', args: [message(code: 'crmProduct.label', default: 'Product'), id])
             redirect action: 'index'
             return
         }
         userTagService.tag(crmProduct, grailsApplication.config.crm.tag.favorite, crmSecurityService.currentUser?.username, TenantUtils.tenant)
 
-        redirect(action: 'show', id: params.id)
+        redirect(action: 'show', id: id)
     }
 
-    def deleteFavorite() {
-        def crmProduct = CrmProduct.findByIdAndTenantId(params.id, TenantUtils.tenant)
+    def deleteFavorite(Long id) {
+        def crmProduct = crmProductService.getProduct(id)
         if (!crmProduct) {
-            flash.error = message(code: 'crmProduct.not.found.message', args: [message(code: 'crmProduct.label', default: 'Product'), params.id])
+            flash.error = message(code: 'crmProduct.not.found.message', args: [message(code: 'crmProduct.label', default: 'Product'), id])
             redirect action: 'index'
             return
         }
         userTagService.untag(crmProduct, grailsApplication.config.crm.tag.favorite, crmSecurityService.currentUser?.username, TenantUtils.tenant)
-        redirect(action: 'show', id: params.id)
+        redirect(action: 'show', id: id)
     }
 
     def autocomplete(String q, int limit, int max, String key) {
         def result = CrmProduct.createCriteria().list() {
             projections {
                 property('name')
-                if(key) {
+                if (key) {
                     property(key)
                 }
             }
@@ -366,7 +349,7 @@ class CrmProductController {
 
     def autocompleteSupplier() {
         def result = crmContactService.list([name: params.q], [max: 100]).collect { [it.name, it.id] }
-        WebUtils.noCache(response)
+        WebUtils.shortCache(response)
         render result as JSON
     }
 

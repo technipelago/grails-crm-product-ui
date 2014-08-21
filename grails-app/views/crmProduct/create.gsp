@@ -9,7 +9,7 @@
     <r:script>
         $(document).ready(function () {
             // Supplier.
-            $("input[name='supplier']").autocomplete("${createLink(action: 'autocompleteSupplier')}", {
+            $("input[name='supplierName']").autocomplete("${createLink(action: 'autocompleteSupplier')}", {
                 remoteDataType: 'json',
                 useCache: false,
                 filter: false,
@@ -17,10 +17,12 @@
                 selectFirst: true,
                 onItemSelect: function(item) {
                     var id = item.data[0];
+                    $("#supplierId").val(id);
                     $("header h1 small").text(item.value);
                 },
                 onNoMatch: function() {
-                    $("header h1 small").text($("input[name='supplier']").val());
+                    $("#supplierId").val('');
+                    $("header h1 small").text($("input[name='supplierName']").val());
                 }
             });
         });
@@ -109,8 +111,9 @@
                     </label>
 
                     <div class="controls">
-                        <g:textField name="supplier" value="${crmProduct.supplier?.name}" class="span12"
+                        <g:textField name="supplierName" value="${crmProduct.supplierName}" class="span12"
                                      autocomplete="off"/>
+                        <g:hiddenField name="supplierId" value="${crmProduct.supplierId}"/>
                     </div>
                 </div>
 
@@ -130,7 +133,7 @@
                     </label>
 
                     <div class="controls">
-                        <g:select name="group.id" from="${productGroups}" optionKey="id"
+                        <g:select name="group.id" from="${metadata.groups}" optionKey="id"
                                   value="${crmProduct.group?.id}"/>
                     </div>
                 </div>
