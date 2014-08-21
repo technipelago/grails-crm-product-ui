@@ -36,4 +36,19 @@ Provides (admin) user interface for product/item management in GR8 CRM applicati
     def organization = [name: "Technipelago AB", url: "http://www.technipelago.se/"]
     def issueManagement = [system: "github", url: "https://github.com/technipelago/grails-crm-product-ui/issues"]
     def scm = [url: "https://github.com/technipelago/grails-crm-product-ui"]
+
+    def features = {
+        crmProductUi {
+            //dependsOn "crmProduct"
+            description "Product Management UI"
+            link controller: "crmProduct", action: "index"
+            permissions {
+                guest "crmProduct:index,list,show,autocompleteGroup,clearQuery"
+                partner "crmProduct:index,list,show,autocompleteGroup,clearQuery"
+                user "crmProduct:*"
+                admin "crmProduct,crmProductGroup,crmPriceList:*"
+            }
+            hidden true
+        }
+    }
 }
