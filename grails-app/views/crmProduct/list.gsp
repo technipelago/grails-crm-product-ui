@@ -8,7 +8,6 @@
 
 <body>
 
-
 <crm:header title="crmProduct.list.title" subtitle="crmProduct.totalCount.label"
             args="[entityName, crmProductTotal]">
 </crm:header>
@@ -52,8 +51,14 @@
             </td>
 
             <td>
-                <g:link controller="crmContact" action="show"
-                        id="${crmProduct.supplier?.id}">${crmProduct.supplier?.encodeAsHTML()}</g:link>
+                <g:if test="${crmProduct.supplierId}">
+                    <g:link mapping="crm-contact-show" id="${crmProduct.supplierId}">
+                        <g:fieldValue bean="${crmProduct}" field="supplierName"/>
+                    </g:link>
+                </g:if>
+                <g:else>
+                    <g:fieldValue bean="${crmProduct}" field="supplierName"/>
+                </g:else>
             </td>
             <td class="money">
                 <g:if test="${price}">

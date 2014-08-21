@@ -42,30 +42,30 @@
                 <div class="span4">
                     <dl>
 
-                        <g:if test="${crmProduct?.number}">
+                        <g:if test="${crmProduct.number}">
                             <dt><g:message code="crmProduct.number.label" default="Number"/></dt>
                             <dd><g:fieldValue bean="${crmProduct}" field="number"/></dd>
                         </g:if>
 
-                        <g:if test="${crmProduct?.name}">
+                        <g:if test="${crmProduct.name}">
                             <dt><g:message code="crmProduct.name.label" default="Name"/></dt>
 
                             <dd><g:fieldValue bean="${crmProduct}" field="name"/></dd>
                         </g:if>
 
-                        <g:if test="${crmProduct?.displayNumber}">
+                        <g:if test="${crmProduct.displayNumber}">
                             <dt><g:message code="crmProduct.displayNumber.label" default="Display Number"/></dt>
 
                             <dd><g:fieldValue bean="${crmProduct}" field="displayNumber"/></dd>
                         </g:if>
 
-                        <g:if test="${crmProduct?.displayName}">
+                        <g:if test="${crmProduct.displayName}">
                             <dt><g:message code="crmProduct.displayName.label" default="Display Name"/></dt>
 
                             <dd><g:fieldValue bean="${crmProduct}" field="displayName"/></dd>
                         </g:if>
 
-                        <g:if test="${crmProduct?.group}">
+                        <g:if test="${crmProduct.group}">
                             <dt><g:message code="crmProduct.group.label" default="Group"/></dt>
 
                             <dd><g:fieldValue bean="${crmProduct}" field="group"/></dd>
@@ -77,13 +77,22 @@
                 <div class="span4">
                     <dl>
 
-                        <g:if test="${crmProduct?.supplier}">
+                        <g:if test="${crmProduct.supplier}">
                             <dt><g:message code="crmProduct.supplier.label" default="Supplier"/></dt>
 
-                            <dd><g:fieldValue bean="${crmProduct}" field="supplier"/></dd>
+                            <dd>
+                                <g:if test="${crmProduct.supplierId}">
+                                    <g:link mapping="crm-contact-show" id="${crmProduct.supplierId}">
+                                        <g:fieldValue bean="${crmProduct}" field="supplierName"/>
+                                    </g:link>
+                                </g:if>
+                                <g:else>
+                                    <g:fieldValue bean="${crmProduct}" field="supplierName"/>
+                                </g:else>
+                            </dd>
                         </g:if>
 
-                        <g:if test="${crmProduct?.suppliersNumber}">
+                        <g:if test="${crmProduct.suppliersNumber}">
                             <dt><g:message code="crmProduct.suppliersNumber.label"
                                            default="Supplier Number"/></dt>
 
@@ -96,12 +105,12 @@
                 <div class="span4">
                     <dl>
 
-                        <g:if test="${crmProduct?.barcode}">
+                        <g:if test="${crmProduct.barcode}">
                             <dt><g:message code="crmProduct.barcode.label" default="Barcode"/></dt>
                             <dd><g:fieldValue bean="${crmProduct}" field="barcode"/></dd>
                         </g:if>
 
-                        <g:if test="${crmProduct?.weight}">
+                        <g:if test="${crmProduct.weight}">
                             <dt><g:message code="crmProduct.weight.label" default="Weight"/></dt>
                             <dd><g:fieldValue bean="${crmProduct}" field="weight"/></dd>
                         </g:if>
@@ -133,7 +142,7 @@
                                 label="crmProduct.button.find.label"/>
                 </crm:selectionMenu>
 
-                <crm:button type="link" action="edit" id="${crmProduct?.id}" visual="warning"
+                <crm:button type="link" action="edit" id="${crmProduct.id}" visual="warning"
                             icon="icon-pencil icon-white"
                             label="crmProduct.button.edit.label" permission="crmProduct:edit">
                 </crm:button>
@@ -188,7 +197,7 @@
         <div class="tab-pane" id="prices">
             <g:render template="prices" model="${[result: prices]}"/>
             <div class="form-actions">
-                <crm:button type="link" action="edit" id="${crmProduct?.id}" visual="warning"
+                <crm:button type="link" action="edit" id="${crmProduct.id}" visual="warning"
                             fragment="prices" icon="icon-pencil icon-white"
                             label="crmProduct.button.edit.label" permission="crmProduct:edit">
                 </crm:button>
@@ -198,7 +207,7 @@
         <div class="tab-pane" id="related">
             <g:render template="compositions" model="${[result: crmProduct.compositions]}"/>
             <div class="form-actions">
-                <crm:button type="link" action="edit" id="${crmProduct?.id}" visual="warning"
+                <crm:button type="link" action="edit" id="${crmProduct.id}" visual="warning"
                             fragment="related" icon="icon-pencil icon-white"
                             label="crmProduct.button.edit.label" permission="crmProduct:edit">
                 </crm:button>
