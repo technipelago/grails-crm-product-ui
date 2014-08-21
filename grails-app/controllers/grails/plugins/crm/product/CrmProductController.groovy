@@ -126,11 +126,11 @@ class CrmProductController {
 
         switch (request.method) {
             case "GET":
-                crmProduct = crmProductService.init(crmProduct, params, RequestContextUtils.getLocale(request))
+                crmProduct = crmProductService.initProduct(crmProduct, params, RequestContextUtils.getLocale(request))
                 return [crmProduct: crmProduct, metadata: metadata]
             case "POST":
                 try {
-                    crmProduct = crmProductService.save(crmProduct, params)
+                    crmProduct = crmProductService.saveProduct(crmProduct, params)
                 } catch (CrmValidationException e) {
                     crmProduct = e[0]
                 }
@@ -197,7 +197,7 @@ class CrmProductController {
                 }
 
                 try {
-                    crmProduct = crmProductService.save(crmProduct, params)
+                    crmProduct = crmProductService.saveProduct(crmProduct, params)
                 } catch (CrmValidationException e) {
                     crmProduct = (CrmProduct)e[0]
                 }
