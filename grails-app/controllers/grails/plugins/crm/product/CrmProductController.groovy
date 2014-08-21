@@ -122,26 +122,31 @@ class CrmProductController {
     def create() {
         def metadata = [:]
         metadata.groups = crmProductService.listProductGroups()
-        def crmProduct = new CrmProduct()
+        CrmProduct crmProduct = new CrmProduct()
 
         switch (request.method) {
             case "GET":
                 crmProduct = crmProductService.initProduct(crmProduct, params, RequestContextUtils.getLocale(request))
                 return [crmProduct: crmProduct, metadata: metadata]
             case "POST":
+                def ok = false
                 try {
                     crmProduct = crmProductService.saveProduct(crmProduct, params)
+                    ok = !crmProduct.hasErrors()
                 } catch (CrmValidationException e) {
                     crmProduct = e[0]
+                } catch (Exception e) {
+                    log.warn("Failed to save crmProduct@$id", e)
+                    flash.error = e.message
                 }
 
-                if (crmProduct.hasErrors()) {
-                    render(view: "create", model: [crmProduct: crmProduct, metadata: metadata])
-                } else {
+                if (ok) {
                     def currentUser = crmSecurityService.currentUser
                     event(for: "crmProduct", topic: "created", fork: false, data: [id: crmProduct.id, tenant: crmProduct.tenantId, user: currentUser?.username])
                     flash.success = message(code: 'crmProduct.created.message', args: [message(code: 'crmProduct.label', default: 'Product'), crmProduct.toString()])
                     redirect(action: "show", id: crmProduct.id)
+                } else {
+                    render(view: "create", model: [crmProduct: crmProduct, metadata: metadata])
                 }
                 break
         }
@@ -180,7 +185,8 @@ class CrmProductController {
         def metadata = [:]
         metadata.groups = crmProductService.listProductGroups()
         metadata.vatList = getVatOptions()
-        metadata.allProducts = crmProductService.list()
+        // Remove self because it's not a valid relation
+        metadata.allProducts = crmProductService.list().findAll { it.id != id }
 
         switch (request.method) {
             case "GET":
@@ -195,20 +201,29 @@ class CrmProductController {
                         return
                     }
                 }
-
+                def ok = false
                 try {
                     crmProduct = crmProductService.saveProduct(crmProduct, params)
+                    ok = !crmProduct.hasErrors()
                 } catch (CrmValidationException e) {
-                    crmProduct = (CrmProduct)e[0]
+                    crmProduct = (CrmProduct) e[0]
+                } catch (Exception e) {
+                    // Re-attach object to this Hibernate session to avoid problems with uninitialized associations.
+                    if (!crmProduct.isAttached()) {
+                        crmProduct.discard()
+                        crmProduct.attach()
+                    }
+                    log.warn("Failed to save crmProduct@$id", e)
+                    flash.error = e.message
                 }
 
-                if (crmProduct.hasErrors()) {
-                    render(view: "edit", model: [crmProduct: crmProduct, metadata: metadata])
-                } else {
+                if (ok) {
                     def currentUser = crmSecurityService.currentUser
                     event(for: "crmProduct", topic: "updated", fork: false, data: [id: crmProduct.id, tenant: crmProduct.tenantId, user: currentUser?.username])
                     flash.success = message(code: 'crmProduct.updated.message', args: [message(code: 'crmProduct.label', default: 'Product'), crmProduct.toString()])
                     redirect(action: "show", id: crmProduct.id)
+                } else {
+                    render(view: "edit", model: [crmProduct: crmProduct, metadata: metadata])
                 }
                 break
         }
@@ -223,7 +238,12 @@ class CrmProductController {
         }
 
         try {
-            def tombstone = crmProductService.deleteProduct(crmProduct)
+            def tombstone
+            CrmProduct.withTransaction {
+                CrmProductComposition.findAllByProduct(crmProduct)*.delete()
+                // This can be removed when we depend on crm-product >= 2.0.2
+                tombstone = crmProductService.deleteProduct(crmProduct)
+            }
             flash.warning = message(code: 'crmProduct.deleted.message', args: [message(code: 'crmProduct.label', default: 'Product'), tombstone])
             redirect(action: "index")
         }
@@ -261,7 +281,8 @@ class CrmProductController {
 
     def addRelated(Long id) {
         def crmProduct = id ? crmProductService.getProduct(id) : null
-        def productList = crmProductService.list()
+        def productList = crmProductService.list().findAll { it.id != id }
+        // Remove self because it's not a valid relation
         render template: 'related', model: [row: 0, bean: new CrmProductComposition(product: crmProduct, quantity: 1, type: CrmProductComposition.INCLUDES), productList: productList]
     }
 
@@ -348,7 +369,21 @@ class CrmProductController {
     }
 
     def autocompleteSupplier() {
-        def result = crmContactService.list([name: params.q], [max: 100]).collect { [it.name, it.id] }
+        def result
+        if (crmContactService != null) {
+            result = crmContactService.list([name: params.q], [max: 100]).collect { [it.name, it.id] }
+        } else {
+            result = CrmProduct.createCriteria().list() {
+                projections {
+                    distinct('supplierName')
+                }
+                eq('tenantId', TenantUtils.tenant)
+                if (params.q) {
+                    ilike('supplierName', SearchUtils.wildcard(params.q))
+                }
+                maxResults 100
+            }.sort()
+        }
         WebUtils.shortCache(response)
         render result as JSON
     }
