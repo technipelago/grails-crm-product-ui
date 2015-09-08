@@ -13,7 +13,7 @@
 <g:each in="${layouts}" var="l">
     <g:form action="export" class="well">
         <input type="hidden" name="q" value="${select.encode(selection: selection)}"/>
-        <input type="hidden" name="namespace" value="${l.namespace}"/>
+        <input type="hidden" name="ns" value="${l.ns}"/>
         <input type="hidden" name="topic" value="${l.topic}"/>
         <input type="hidden" name="layout" value="${l.layout}"/>
 

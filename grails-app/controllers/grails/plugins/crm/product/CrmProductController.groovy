@@ -86,16 +86,16 @@ class CrmProductController {
 
     def export() {
         def user = crmSecurityService.getUserInfo()
-        def namespace = params.namespace ?: 'crmProduct'
+        def ns = params.ns ?: 'crmProduct'
         if (request.post) {
             def filename = message(code: 'crmProduct.label', default: 'Product')
             try {
                 def topic = params.topic ?: 'export'
-                def result = event(for: namespace, topic: topic,
+                def result = event(for: ns, topic: topic,
                         data: params + [user: user, tenant: TenantUtils.tenant, locale: request.locale, filename: filename]).waitFor(60000)?.value
                 if (result?.file) {
                     try {
-                        WebUtils.inlineHeaders(response, result.contentType, result.filename ?: namespace)
+                        WebUtils.inlineHeaders(response, result.contentType, result.filename ?: ns)
                         WebUtils.renderFile(response, result.file)
                     } finally {
                         result.file.delete()
@@ -113,7 +113,7 @@ class CrmProductController {
             redirect(action: "index")
         } else {
             def uri = params.getSelectionURI()
-            def layouts = event(for: namespace, topic: (params.topic ?: 'exportLayout'),
+            def layouts = event(for: ns, topic: (params.topic ?: 'exportLayout'),
                     data: [tenant: TenantUtils.tenant, username: user.username, uri: uri, locale: request.locale]).waitFor(10000)?.values?.flatten()
             [layouts: layouts, selection: uri]
         }
