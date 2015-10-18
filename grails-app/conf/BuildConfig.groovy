@@ -40,7 +40,7 @@ grails.project.dependency.resolution = {
         test(":codenarc:0.22") { export = false }
         test(":code-coverage:2.0.3-3") { export = false }
 
-        compile ":user-tag:0.6"
+        compile ":user-tag:1.0"
 
         compile ":crm-feature:2.4.1"
         compile ":crm-ui-bootstrap:2.4.0"
