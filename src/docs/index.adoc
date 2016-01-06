@@ -96,7 +96,8 @@ image::product-related.png[Related products]
 
 == Changes
 
-2.4.0:: First version to suport Grails 2.4.x
+2.4.1:: Fixed problem with export/print feature on Grails 2.5.x (namespace fix)
+2.4.0:: First version to support Grails 2.4.x
 2.0.0:: First public release
 
 == License

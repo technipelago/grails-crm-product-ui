@@ -16,8 +16,8 @@
 
 class CrmProductUiGrailsPlugin {
     def groupId = ""
-    def version = "2.4.0"
-    def grailsVersion = "2.2 > *"
+    def version = "2.4.1"
+    def grailsVersion = "2.4 > *"
     def dependsOn = [:]
     def loadAfter = ['crmProduct']
     def pluginExcludes = [
