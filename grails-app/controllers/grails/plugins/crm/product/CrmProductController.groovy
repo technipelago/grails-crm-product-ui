@@ -152,8 +152,14 @@ class CrmProductController {
         }
     }
 
-    def show(Long id) {
-        def crmProduct = crmProductService.getProduct(id)
+    def show(String id) {
+        def crmProduct
+        if(id.isNumber()) {
+            crmProduct = crmProductService.getProduct(Long.valueOf(id))
+        }
+        if(! crmProduct) {
+            crmProduct = crmProductService.getProduct(id) // findByNumber(String)
+        }
         if (!crmProduct) {
             flash.error = message(code: 'crmProduct.not.found.message', args: [message(code: 'crmProduct.label', default: 'Product'), id])
             redirect(action: "index")
